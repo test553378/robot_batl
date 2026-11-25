@@ -37,7 +37,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-ブラウザ試験は `npm run build` の成果物を `/robot_batl/` から読み込みます。公開URLを使う場合は `GAME_URL` に実際のURLを設定します。Linux版WebKitをインストールできる環境では、`WEBKIT=1 npm run test:e2e` でも確認できます。
+ブラウザ試験は `npm run build` の成果物を `/robot_batl/` から読み込みます。公開URLを使う場合は `GAME_URL` に実際のURLを設定します。Linux版WebKitを使う場合は `npx playwright install --with-deps webkit` の後、`WEBKIT=1 npm run test:e2e` を実行します。全3戦を通して操作し、実際のゲーム画面を撮る場合は `CAPTURE=1 CAPTURE_CAMPAIGN=1 npm run test:e2e -- tests/battle.spec.ts` を実行します。
 
 ## GitHub Pages に公開する
 

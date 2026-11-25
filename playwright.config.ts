@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: 'tests',
   testMatch: '**/*.spec.ts',
   timeout: 120_000,
+  expect: { timeout: 20_000 },
   workers: 1,
   use: {
     viewport: { width: 844, height: 390 },

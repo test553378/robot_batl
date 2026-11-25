@@ -28,7 +28,7 @@ npm run build
 npm run preview
 ```
 
-Viteの表示URLの `/robot_batl/` を開きます。`dist/` が公開用の静的ビルドです。Three.jsを含む必要ファイルはビルドに同梱します。3Dモデル、ループBGM、効果音はプロジェクト内のコードで生成します。承認されたコンセプト画像は `docs/reference/` に収録しています。
+Viteの表示URLの `/robot_batl/` を開きます。`dist/` が公開用の静的ビルドです。Three.jsを含む必要ファイルはビルドに同梱します。依存ライブラリの使用許諾は `dist/third-party-licenses.md` に出力します。3Dモデル、ループBGM、効果音はプロジェクト内のコードで生成します。承認されたコンセプト画像は `docs/reference/` に収録しています。
 
 ### ブラウザ試験
 

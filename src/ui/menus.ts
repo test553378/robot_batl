@@ -51,7 +51,7 @@ export function garage(stage: Stage, config: RobotConfig, active: RobotPartSlot,
     </section>`
 }
 
-export function intro(round: number, phaseOne = false) {
+export function intro(round: number) {
   return `
     <section class="screen intro">
       <button class="utility icon-button" data-action="refit" aria-label="もどる">‹</button>
@@ -59,7 +59,7 @@ export function intro(round: number, phaseOne = false) {
         <div class="round-pill"><span aria-hidden="true">⚑</span> ${round + 1}かいせん</div>
         <h1>${enemyNames[round]}</h1>
         <div class="round-dots" aria-label="ぜんぶで 3かい">${[0, 1, 2].map((index) => `<span class="${index <= round ? 'lit' : ''}"></span>`).join('')}</div>
-        <button class="primary" data-action="start"><span aria-hidden="true">▶</span> ${phaseOne ? 'つぎのロボ' : 'スタート！'}</button>
+        <button class="primary" data-action="start"><span aria-hidden="true">▶</span> スタート！</button>
       </div>
     </section>`
 }

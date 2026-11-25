@@ -23,13 +23,6 @@ test('renders real part previews and restores the selected construction', async 
   }
   await page.getByRole('button', { name: 'かんせい！' }).click()
   await expect(page.getByRole('heading', { name: 'ダークスカウト' })).toBeVisible()
-  if (process.env.PHASE_ONE) {
-    await page.getByRole('button', { name: 'つぎのロボ' }).click()
-    await expect(page.getByRole('heading', { name: 'デストロギア' })).toBeVisible()
-    await page.getByRole('button', { name: 'つぎのロボ' }).click()
-    await expect(page.getByRole('heading', { name: 'グランヴェイル' })).toBeVisible()
-    if (process.env.CAPTURE) await page.screenshot({ path: 'docs/screenshots/02-boss.jpg', quality: 91 })
-  }
   await page.reload()
   await page.getByRole('button', { name: 'あそぶ' }).click()
   await page.locator('[data-action="slot-arms"]').click()

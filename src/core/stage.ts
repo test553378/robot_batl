@@ -4,6 +4,8 @@ import { arena, garage, lights } from './environment'
 import { batchSurfaces } from '../robots/geometry'
 import { makeEnemy, type EnemyModel } from '../robots/enemy'
 import { makeHero, makePartPreview, type RobotRig } from '../robots/hero'
+import { BattleVisuals } from '../battle/visuals'
+import type { Battle } from '../battle/battle'
 import type { RobotConfig, RobotPartSlot, Theme, WeaponId } from '../robots/catalog'
 
 type View = 'title' | 'garage' | 'intro' | 'battle'
@@ -34,6 +36,7 @@ function shadow() {
 
 export class Stage {
   readonly scene = new T.Scene()
+  private readonly battleVisuals = new BattleVisuals(this.scene)
   private readonly camera = new T.PerspectiveCamera(37, 1, 0.1, 115)
   private readonly renderer: T.WebGLRenderer
   private readonly garage = batchSurfaces(garage())
@@ -92,10 +95,16 @@ export class Stage {
   }
 
   show(view: View, config: RobotConfig, model: EnemyModel = 0) {
+    this.battleVisuals.clear()
     this.hero?.root.removeFromParent()
     this.enemy?.root.removeFromParent()
     this.hero = view === 'intro' ? undefined : makeHero(config)
     this.enemy = view === 'intro' || view === 'battle' ? this.getEnemy(model) : undefined
+    if (this.enemy) {
+      this.enemy.torso.position.set(0, 0, 0)
+      this.enemy.torso.rotation.set(0, 0, 0)
+      for (const joint of [...this.enemy.arms, ...this.enemy.legs]) joint.rotation.set(0, 0, 0)
+    }
     this.view = view
     this.rotation = view === 'title' ? 0.52 : -0.46
     this.equipTime = 0
@@ -191,6 +200,10 @@ export class Stage {
     this.camera.lookAt(this.focus)
     const offset = portrait ? 0 : this.view === 'title' ? -0.225 : this.view === 'battle' ? 0 : this.view === 'intro' ? -0.16 : 0.205
     this.camera.setViewOffset(this.width, this.height, this.width * offset, 0, this.width, this.height)
+  }
+
+  updateBattle(dt: number, battle: Battle) {
+    if (this.hero && this.enemy) this.battleVisuals.update(dt, battle, this.hero, this.enemy)
   }
 
   draw(dt: number, animate = true) {

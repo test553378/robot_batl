@@ -19,6 +19,7 @@ test('renders real part previews and restores the selected construction', async 
   await expect(page.locator('[data-action="part-fire"]')).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'ひだりに まわす' }).click()
   if (process.env.CAPTURE) {
+    await page.getByRole('button', { name: 'みぎに まわす' }).click()
     await page.screenshot({ path: 'docs/screenshots/01-garage.jpg', quality: 91 })
   }
   await page.getByRole('button', { name: 'かんせい！' }).click()

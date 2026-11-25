@@ -11,7 +11,7 @@ export interface Shot extends Point {
   radius: number; damage: number; speed: number; color: number; special: boolean
 }
 export type BattleEvent =
-  | { kind: 'shot'; id: number }
+  | { kind: 'shot'; owner: Shot['owner']; special: boolean }
   | { kind: 'charge' | 'warning' | 'step' }
   | { kind: 'impact'; x: number; z: number; color: number; special: boolean; owner: Shot['owner'] }
   | { kind: 'won' | 'lost' }
@@ -57,7 +57,15 @@ export class Battle {
 
   update(dt: number, input: BattleInput) {
     this.events.length = 0
-    if (this.status !== 'playing' || dt <= 0) return
+    let remaining = dt
+    while (remaining > 1e-6 && this.status === 'playing') {
+      const step = Math.min(remaining, 1 / 60)
+      this.stepBattle(step, input)
+      remaining -= step
+    }
+  }
+
+  private stepBattle(dt: number, input: BattleInput) {
     this.elapsed += dt
     this.cooldown = Math.max(0, this.cooldown - dt)
     this.invulnerability = Math.max(0, this.invulnerability - dt)
@@ -140,7 +148,7 @@ export class Battle {
     const yaw = aim({ x, z }, to)
     const id = ++this.shotCount
     this.shots.push({ id, owner, x, z, vx: Math.sin(yaw), vz: Math.cos(yaw), travel: 0, ...params })
-    this.events.push({ kind: 'shot', id })
+    this.events.push({ kind: 'shot', owner, special: params.special })
     from.recoil = 0.28
   }
 

@@ -9,8 +9,11 @@ const types: Record<string, string> = {
   '.webp': 'image/webp', '.png': 'image/png',
 }
 
-export async function openGame(page: Page) {
+export async function openGame(page: Page, blockEntry = false) {
+  const scriptPattern = '**/assets/*.js'
+  const block = () => page.route(scriptPattern, (route) => route.abort('failed'))
   if (process.env.GAME_URL) {
+    if (blockEntry) await block()
     await page.goto(process.env.GAME_URL)
     return
   }
@@ -25,5 +28,6 @@ export async function openGame(page: Page) {
       await route.fulfill({ body, contentType: types[suffix] ?? 'application/octet-stream' })
     } catch { await route.fulfill({ status: 404, body: 'Missing build artifact' }) }
   })
+  if (blockEntry) await block()
   await page.goto(`${builtOrigin}${prefix}`)
 }

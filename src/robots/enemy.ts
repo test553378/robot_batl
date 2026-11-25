@@ -25,14 +25,14 @@ export function makeEnemy(model: EnemyModel): RobotRig {
   root.name = enemyNames[model]
   root.scale.setScalar(p.scale)
   const torso = group(root)
-  const head = group(torso, 0, 3.08, 0.039)
+  const head = group(torso, 0, 2.98, 0.039)
   const body = group(torso, 0, 2.23, 0)
   const armSocket = group(torso, 0, 2.55, 0)
   const legSocket = group(root, 0, 1.49, 0)
   const arms: RobotRig['arms'] = [group(armSocket, -p.span, 0, 0), group(armSocket, p.span, 0, 0)]
   const legs: RobotRig['legs'] = [group(legSocket, -0.4, 0, 0), group(legSocket, 0.4, 0, 0)]
   cylinder(head, 0.24, 0.42, steel, [0, -0.126, -0.012], 'y', 'metal')
-  cylinder(head, 0.29, 0.093, iron, [0, -0.259, -0.012], 'y', 'metal')
+  cylinder(head, 0.31, 0.12, iron, [0, -0.259, -0.012], 'y', 'metal')
   plate(head, [0.78, 0.62, 0.65], iron, [0, 0.31, 0], 0.11, 'metal')
   plate(head, [0.55, 0.31, 0.39], steel, [0, 0.129, 0.161], 0.064, 'metal', 0.08)
   plate(head, [0.78, 0.28, 0.2], p.paint, [0, 0.415, 0.268], 0.077, 'paint', 0.044)

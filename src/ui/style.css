@@ -30,6 +30,8 @@ img { pointer-events: none; -webkit-user-drag: none; }
   position: absolute; inset: 0; display: grid; align-content: center; justify-items: center;
   gap: 14px; text-align: center; padding: 20px; background: radial-gradient(ellipse at 50% 36%, #214477, #0a1c34 74%);
 }
+.screen-error[hidden] { display: none; }
+.boot progress { width: clamp(110px, 24vw, 250px); accent-color: #65e7ff; }
 .screen-error strong { color: #77e5ff; font-size: 46px; }
 .screen-error p { color: #c6ddf4; }
 
@@ -104,9 +106,7 @@ img { pointer-events: none; -webkit-user-drag: none; }
   border-radius: 9px; border: 1px solid #577fac; color: #daeaff; background: linear-gradient(#375985, #21385c);
   font-size: clamp(9px, 1.68vw, 17px); letter-spacing: -0.07em; white-space: nowrap;
 }
-.part-tab b { font-size: 1.3em; line-height: 1; color: #9cddff; }
 .part-tab[aria-pressed="true"] { background: linear-gradient(#fff68b, #ffd347); border-color: #fff3bd; color: #193455; }
-.part-tab[aria-pressed="true"] b { color: #173859; }
 .part-option {
   position: relative; overflow: hidden; display: grid; align-items: end; justify-items: stretch;
   min-width: 0; min-height: 62px; padding: 0;
@@ -248,4 +248,36 @@ img { pointer-events: none; -webkit-user-drag: none; }
   .directions { --d: clamp(40px, 15vh, 50px); }
   .hud { gap: clamp(4px, 1.7vw, 17px); }
   .workshop-heading .utility { min-height: 37px; }
+}
+
+.part-tab .part-icon {
+  width: 1.55em; height: 1.3em; display: block; margin-bottom: 0.15em; background: #a0ddff;
+}
+.part-tab[aria-pressed="true"] .part-icon { background: #1c395d; }
+.part-icon.head { clip-path: polygon(0 20%, 22% 29%, 30% 8%, 70% 8%, 79% 29%, 100% 20%, 92% 73%, 72% 95%, 27% 95%, 8% 73%); }
+.part-icon.body { clip-path: polygon(0 16%, 26% 10%, 30% 30%, 70% 30%, 74% 10%, 100% 16%, 91% 53%, 75% 57%, 70% 90%, 30% 90%, 25% 57%, 9% 53%); }
+.part-icon.arms { clip-path: polygon(0 31%, 31% 15%, 41% 38%, 30% 80%, 3% 91%, 0 73%, 13% 56%, 4% 49%, 0 31%, 100% 31%, 96% 49%, 87% 56%, 100% 73%, 97% 91%, 70% 80%, 59% 38%, 69% 15%, 100% 31%); }
+.part-icon.legs { clip-path: polygon(11% 12%, 42% 12%, 43% 64%, 40% 91%, 0 91%, 3% 72%, 11% 12%, 89% 12%, 97% 72%, 100% 91%, 60% 91%, 57% 64%, 58% 12%, 89% 12%); }
+.part-icon.weapon { clip-path: polygon(0 25%, 21% 25%, 24% 13%, 70% 13%, 78% 24%, 100% 24%, 100% 49%, 73% 49%, 66% 66%, 44% 66%, 37% 92%, 18% 92%, 29% 51%, 0 51%); }
+.orientation {
+  align-content: center; padding: max(20px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 35%, #254f7c, #112949 58%, #081a33);
+}
+.orientation img { width: min(76vw, 290px); height: auto; margin-bottom: 2vh; }
+.result {
+  display: flex; justify-content: flex-end; align-items: center;
+  background: linear-gradient(90deg, #08193403 32%, #122a4f7a 61%, #0a203de0);
+  padding-right: max(5vw, env(safe-area-inset-right));
+}
+.result-card { max-width: 51vw; padding-inline: 0; }
+.result-card h1 { font-size: clamp(22px, min(7vw, 9vh), 67px); white-space: nowrap; }
+.result-buttons { justify-content: center; }
+.directions { --d: clamp(45px, 16.1vh, 82px); }
+@media (max-height: 340px) and (orientation: landscape) {
+  .directions { --d: clamp(40px, 15.4vh, 51px); }
+  .result-buttons .primary { min-height: 48px; font-size: 16px; }
+  .result-buttons .utility { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .health-track span { transition: none; }
 }

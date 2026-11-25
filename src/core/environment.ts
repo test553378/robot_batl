@@ -47,8 +47,6 @@ export function garage() {
   return root
 }
 
-export const arenaRadius = 8
-
 function randomizer(seed: number) {
   return () => {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
@@ -60,9 +58,9 @@ export function arena() {
   const root = new T.Group()
   const random = randomizer(84)
   cylinder(root, 8.93, 0.55, 0x2a496a, [0, -0.359, 0], 'y', 'metal', 8.72, 64)
-  cylinder(root, 8.73, 0.14, 0x587b9c, [0, -0.084, 0], 'y', 'paint', 8.68, 64)
-  ring(root, 8.48, 0.046, ice, [0, -0.014, 0], 'y', 'light', 64)
-  ring(root, 7.28, 0.025, 0x57d6f4, [0, -0.014, 0], 'y', 'light', 64)
+  cylinder(root, 8.73, 0.14, 0x436d95, [0, -0.084, 0], 'y', 'paint', 8.68, 64)
+  ring(root, 8.48, 0.053, 0x35cdf9, [0, -0.014, 0], 'y', 'light', 64)
+  ring(root, 7.28, 0.034, 0x30b8ff, [0, -0.014, 0], 'y', 'light', 64)
   ring(root, 2.45, 0.032, 0xe8c465, [0, -0.016, 0], 'y', 'paint', 48)
   ring(root, 2.59, 0.021, 0x89b2ca, [0, -0.016, 0], 'y', 'paint', 48)
   for (const x of [-0.65, 0.65]) plate(root, [0.3, 0.015, 1.58], 0xe9c767, [x, -0.009, 0], 0)
@@ -83,6 +81,17 @@ export function arena() {
     }
   }
   cylinder(root, 39, 0.18, 0x7ab5cf, [0, -1.15, 0], 'y', 'paint', 39, 40)
+  // Two nearer traffic towers establish the scale of the rooftop.
+  for (const [x, z, height] of [[-12.8, -16.4, 4.7], [14.3, -17.8, 5.8]]) {
+    const tower = group(root, x, 0, z)
+    cylinder(tower, 0.84, height, 0x9bb5d1, [0, height / 2 - 1.03, 0], 'y', 'metal', 0.54, 8)
+    cylinder(tower, 1.36, 0.72, 0x38587e, [0, height - 0.86, 0], 'y', 'metal', 1.64, 8)
+    cylinder(tower, 1.54, 0.53, 0x234d7c, [0, height - 0.28, 0], 'y', 'glass', 1.47, 8)
+    cylinder(tower, 1.52, 0.22, 0xa8cadd, [0, height + 0.035, 0], 'y', 'metal', 1.16, 8)
+    ring(tower, 1.52, 0.036, 0x58c7f6, [0, height - 0.02, 0], 'y', 'light', 8)
+    cylinder(tower, 0.045, 0.74, 0xa8c4df, [0, height + 0.49, 0], 'y', 'metal', 0.045, 8)
+    cylinder(tower, 0.095, 0.115, 0xff8dbe, [0, height + 0.89, 0], 'y', 'light', 0.095, 8)
+  }
   const buildings = [0x547fa9, 0x739cbd, 0x60729b, 0x477eb0, 0x689bbe]
   for (let i = 0; i < 37; i++) {
     const z = -20 - random() * 15

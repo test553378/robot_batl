@@ -1,12 +1,13 @@
 import * as T from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { arena, garage, lights } from './environment'
+import { glowSprite, showGlow } from './glow'
 import { batchSurfaces } from '../robots/geometry'
 import { makeEnemy, type EnemyModel } from '../robots/enemy'
 import { makeHero, makePartPreview, type RobotRig } from '../robots/hero'
 import { BattleVisuals } from '../battle/visuals'
 import type { Battle } from '../battle/battle'
-import type { RobotConfig, RobotPartSlot, Theme, WeaponId } from '../robots/catalog'
+import { defaultConfig, type RobotConfig, type RobotPartSlot, type Theme, type WeaponId } from '../robots/catalog'
 
 type View = 'title' | 'garage' | 'intro' | 'battle'
 
@@ -52,16 +53,22 @@ export class Stage {
   hero?: RobotRig
   enemy?: RobotRig
   private view: View = 'title'
+  private resultRig?: RobotRig
+  private portraitImage?: string
+  private quality = 0
+  private sampleSeconds = 0
+  private sampleFrames = 0
+  private goodSeconds = 0
   private rotation = 0.5
   private equipSlot?: RobotPartSlot
   private equipTime = 0
-  private readonly equip = new T.PointLight(0x46efff, 0, 3.6, 1.5)
+  private readonly equip = glowSprite(0x71f2ff)
   private width = 1
   private height = 1
   private time = 0
 
   constructor(private readonly mount: HTMLElement, onContextLost: () => void) {
-    this.renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+    this.renderer = new T.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' })
     this.renderer.toneMapping = T.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.11
     this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
@@ -82,13 +89,14 @@ export class Stage {
     lights(this.thumbScene)
     this.thumbScene.background = new T.Color(0x1c4168)
     this.scene.add(this.garage, this.arena, this.equip, ...this.shadows)
+    this.battleVisuals.setReduced(matchMedia('(prefers-reduced-motion: reduce)').matches)
     this.resize()
   }
 
   resize() {
     this.width = Math.max(1, this.mount.clientWidth)
     this.height = Math.max(1, this.mount.clientHeight)
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.65))
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, [1.6, 1.2, 0.88][this.quality]))
     this.renderer.setSize(this.width, this.height, false)
     this.camera.aspect = this.width / this.height
     this.frameCamera(0)
@@ -96,6 +104,7 @@ export class Stage {
 
   show(view: View, config: RobotConfig, model: EnemyModel = 0) {
     this.battleVisuals.clear()
+    this.resultRig = undefined
     this.hero?.root.removeFromParent()
     this.enemy?.root.removeFromParent()
     this.hero = view === 'intro' ? undefined : makeHero(config)
@@ -103,6 +112,7 @@ export class Stage {
     if (this.enemy) {
       this.enemy.torso.position.set(0, 0, 0)
       this.enemy.torso.rotation.set(0, 0, 0)
+      this.enemy.head.rotation.set(0, 0, 0)
       for (const joint of [...this.enemy.arms, ...this.enemy.legs]) joint.rotation.set(0, 0, 0)
     }
     this.view = view
@@ -161,35 +171,59 @@ export class Stage {
     const key = `${slot}:${id}`
     const existing = this.previews.get(key)
     if (existing) return existing
-    const model = makePartPreview(slot, id)
+    const url = this.capture(makePartPreview(slot, id), 160, 128)
+    this.previews.set(key, url)
+    return url
+  }
+
+  portrait() {
+    if (!this.portraitImage) {
+      const model = makeHero({ ...defaultConfig, arms: 'fire', legs: 'rescue' }).root
+      model.rotation.y = -0.27
+      this.portraitImage = this.capture(model, 280, 320, true)
+    }
+    return this.portraitImage
+  }
+
+  private capture(model: T.Group, width: number, height: number, portrait = false) {
+    model.updateMatrixWorld(true)
     const box = new T.Box3().setFromObject(model)
     const center = box.getCenter(new T.Vector3())
     const size = box.getSize(new T.Vector3())
-    model.position.copy(center).negate()
-    this.thumbScene.add(model)
+    const centered = new T.Group()
+    centered.add(model)
+    centered.position.copy(center).negate()
+    this.thumbScene.add(centered)
+    this.thumbCamera.aspect = width / height
+    this.thumbCamera.updateProjectionMatrix()
     const extent = Math.max(size.x, size.y, size.z)
-    this.thumbCamera.position.set(extent * 0.89, extent * 0.48, extent * 1.94)
+    this.thumbCamera.position.set(extent * 0.77, extent * 0.32, extent * (portrait ? 2.28 : 1.94))
     this.thumbCamera.lookAt(0, 0, 0)
     this.renderer.setPixelRatio(1)
-    this.renderer.setSize(160, 128, false)
+    this.renderer.setSize(width, height, false)
+    if (portrait) this.thumbScene.background = null
     this.renderer.render(this.thumbScene, this.thumbCamera)
     const url = this.renderer.domElement.toDataURL('image/webp', 0.9)
-    model.removeFromParent()
+    if (portrait) this.thumbScene.background = new T.Color(0x1c4168)
+    centered.removeFromParent()
     this.resize()
-    this.previews.set(key, url)
     return url
   }
 
   private frameCamera(dt: number) {
     const aspect = this.width / this.height
     const portrait = aspect < 1
-    if (this.view === 'battle') {
+    if (this.resultRig) {
+      const { x, z } = this.resultRig.root.position
+      this.desiredFocus.set(x, 1.84, z)
+      this.desired.set(x + 0.75, 3.45, z + 8.1)
+    } else if (this.view === 'battle') {
       const a = this.hero!.root.position
       const b = this.enemy!.root.position
       const separation = Math.hypot(a.x - b.x, a.z - b.z)
-      const zoom = Math.max(0, separation - 6) * 0.68
-      this.desiredFocus.set((a.x + b.x) * 0.47, 1.2, (a.z + b.z) * 0.45)
-      this.desired.copy(this.desiredFocus).add(new T.Vector3(0, 9 + zoom * 0.46, 13.2 + zoom))
+      const zoom = Math.max(0, separation - 5.7) * 0.63 + Math.max(0, Math.abs(a.z - b.z) - 3) * 0.28
+      this.desiredFocus.set((a.x + b.x) * 0.49, 1.65, (a.z + b.z) * 0.49)
+      this.desired.set(this.desiredFocus.x, 5.15 + zoom * 0.29, this.desiredFocus.z + 10.35 + zoom)
     } else {
       this.desiredFocus.set(0, this.view === 'intro' ? 2.25 : 1.89, 0)
       this.desired.set(0, this.view === 'intro' ? 3.38 : 2.82, portrait ? 9.6 : this.view === 'intro' ? 8.95 : this.view === 'garage' ? 8.15 : 7.5)
@@ -198,7 +232,7 @@ export class Stage {
     this.camera.position.lerp(this.desired, catchup)
     this.focus.lerp(this.desiredFocus, catchup)
     this.camera.lookAt(this.focus)
-    const offset = portrait ? 0 : this.view === 'title' ? -0.225 : this.view === 'battle' ? 0 : this.view === 'intro' ? -0.16 : 0.205
+    const offset = portrait ? 0 : this.resultRig ? 0.20 : this.view === 'title' ? -0.225 : this.view === 'battle' ? 0 : this.view === 'intro' ? -0.16 : 0.205
     this.camera.setViewOffset(this.width, this.height, this.width * offset, 0, this.width, this.height)
   }
 
@@ -206,7 +240,30 @@ export class Stage {
     if (this.hero && this.enemy) this.battleVisuals.update(dt, battle, this.hero, this.enemy)
   }
 
-  draw(dt: number, animate = true) {
+  beginResult() { this.resultRig = this.hero }
+
+  animateResult(dt: number, battle: Battle, quiet: boolean) {
+    if (this.hero && this.enemy) this.battleVisuals.animateResult(dt, battle, this.hero, this.enemy, quiet)
+  }
+
+  private tuneQuality(seconds: number) {
+    if (seconds <= 0 || seconds > 0.8) return
+    this.sampleSeconds += seconds
+    this.sampleFrames++
+    if (this.sampleSeconds < 1.25) return
+    const fps = this.sampleFrames / this.sampleSeconds
+    this.goodSeconds = fps > 52 ? this.goodSeconds + this.sampleSeconds : 0
+    const next = fps < 31 ? Math.min(2, this.quality + 1) : this.goodSeconds > 6 ? Math.max(0, this.quality - 1) : this.quality
+    this.sampleSeconds = this.sampleFrames = 0
+    if (next === this.quality) return
+    this.quality = next
+    this.goodSeconds = 0
+    this.battleVisuals.setReduced(next > 0 || matchMedia('(prefers-reduced-motion: reduce)').matches)
+    this.resize()
+  }
+
+  draw(dt: number, animate = true, frameSeconds = dt) {
+    if (this.view === 'battle' && animate && !this.resultRig) this.tuneQuality(frameSeconds)
     this.time += animate ? dt : 0
     if (this.view !== 'battle') {
       if (this.hero) {
@@ -221,8 +278,8 @@ export class Stage {
       this.equipTime = Math.max(0, this.equipTime - dt)
       this.hero.slots[this.equipSlot].getWorldPosition(this.equip.position)
       this.equip.position.z += 0.9
-      this.equip.intensity = Math.sin(this.equipTime / 0.34 * Math.PI) * 43
-    } else this.equip.intensity = 0
+      showGlow(this.equip, Math.sin(this.equipTime / 0.34 * Math.PI) * 0.98, 3.4)
+    } else showGlow(this.equip, 0, 3.4)
     for (const [index, rig] of [this.hero, this.enemy].entries()) {
       this.shadows[index].visible = !!rig
       if (rig) {

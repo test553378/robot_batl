@@ -3,8 +3,6 @@ import type { Stage } from '../core/stage'
 import { partsFor, slotNames, slots, themeNames, weaponNames, type RobotConfig, type RobotPartSlot, type Theme, type WeaponId } from '../robots/catalog'
 import { enemyNames } from '../robots/enemy'
 
-export const slotSymbols = { head: '⌾', body: '⬟', arms: '◆', legs: '▮▮', weapon: '✦' }
-
 export function title(settings: AudioSettings, audioOpen: boolean) {
   const toggles = [
     ['music', 'おんがく', '♫'],
@@ -38,7 +36,7 @@ export function garage(stage: Stage, config: RobotConfig, active: RobotPartSlot,
       </div>
       <div class="parts-panel">
         <div class="part-tabs" aria-label="ぶひん">
-          ${slots.map((slot) => `<button class="part-tab" data-action="slot-${slot}" aria-pressed="${active === slot}"><b aria-hidden="true">${slotSymbols[slot]}</b>${slotNames[slot]}</button>`).join('')}
+          ${slots.map((slot) => `<button class="part-tab" data-action="slot-${slot}" aria-pressed="${active === slot}"><i class="part-icon ${slot}" aria-hidden="true"></i>${slotNames[slot]}</button>`).join('')}
         </div>
         <div class="part-options" aria-label="${slotNames[active]}">
           ${partsFor(active).map((id) => {
